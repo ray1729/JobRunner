@@ -29,14 +29,14 @@ sub run {
         $job->run();
         $self->add_output( $job->get_output );
         if ( $job->has_errors ) {
-            $self->error( "Job failed, aborting job group" );
+            $self->error( "Job $job failed, aborting job group" );
             last;
         }
         elsif ( $job->has_warnings ) {
-            $self->warning( "Job failed, but continue on error requested" );
+            $self->warning( "Job $job failed, but continue on error requested" );
         }
         else {
-            $self->log->info( "Job completed successfully" );
+            $self->log->info( "Job $job completed successfully" );
         }
     }
     continue {
@@ -49,15 +49,15 @@ sub run {
     }
     
     if ( $self->has_errors ) {
-        $self->status_message( "JobGroup exited with errors" );
+        $self->status_message( "JobGroup $self exited with errors" );
         $self->error( $self->status_message  );
     }
     elsif ( $self->has_warnings ) {
-        $self->status_message( "JobGroup exited with warnings" );
+        $self->status_message( "JobGroup $self exited with warnings" );
         $self->warning( $self->status_message );
     }
     else {
-        $self->status_message( "JobGroup completed successfully" );
+        $self->status_message( "JobGroup $self completed successfully" );
         $self->log->info( $self->status_message );
     }
 }

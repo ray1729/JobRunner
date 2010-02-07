@@ -48,8 +48,11 @@ sub run {
         if ( $pid == 0 ) {
             $job->run;
             if ( $job->has_errors or $job->has_warnings ) {
-                $job->dump_output;
-                exit 1;
+	        for ( $job->get_errors, $job->get_warnings, $job->get_output ) {
+		    chomp;
+	            print STDERR "$_\n";
+		  }
+	        exit 1;
             }
             exit 0;
         }

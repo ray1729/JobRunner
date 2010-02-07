@@ -150,16 +150,6 @@ sub stdout_callback {
     $self->_out_err_callback( 'STDOUT', map { split "\n" } @_ );
 }
 
-sub dump_output {
-    my $self = shift;
-
-    for ( $self->get_output ) {
-        chomp;
-        print STDERR "$_\n";
-    }
-}
-
-
 1;
 
 __END__
