@@ -15,7 +15,7 @@ use JobRunner::Config;
 {   
     my $action = \&act_run;
     my $log_level = $WARN;
-    my $log_file  = 'STDOUT';
+    my $log_file  = 'STDERR';
     
     GetOptions(
         'help'          => sub { pod2usage( -verbose => 1 ) },

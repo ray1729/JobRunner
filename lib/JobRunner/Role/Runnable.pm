@@ -150,6 +150,19 @@ sub stdout_callback {
     $self->_out_err_callback( 'STDOUT', map { split "\n" } @_ );
 }
 
+around run => sub {
+    my $orig = shift;
+    my $self = shift;
+
+    unless ( $self->enabled ) {
+	$self->add_warning( "Skipping disabled job $self" );
+	return;
+    }
+
+    $self->log->debug( "Running $self" );
+    $self->$orig( @_ );
+};
+
 1;
 
 __END__
