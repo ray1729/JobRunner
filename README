@@ -1,2 +1,7 @@
+This archive contains the distribution JobRunner, a script
+for managing collections of batch jobs
 
-job-runner.pl - script for managing batch jobs
+This software is copyright (c) 2010 by Ray Miller.
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
