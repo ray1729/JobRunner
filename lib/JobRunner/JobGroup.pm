@@ -27,13 +27,16 @@ sub run {
         $job->workdir( $self->workdir || '/' )
             unless $job->workdir;
         $job->run();
-        $self->add_output( $job->get_output );
         if ( $job->has_errors ) {
+            $self->error( $job->get_errors );
             $self->error( "Job $job failed, aborting job group" );
+            $self->add_output( $job->get_output );
             last;
         }
         elsif ( $job->has_warnings ) {
+            $self->warning( $job->get_warnings );
             $self->warning( "Job $job failed, but continue on error requested" );
+            $self->add_output( $job->get_output );
         }
         else {
             $self->log->info( "Job $job completed successfully" );

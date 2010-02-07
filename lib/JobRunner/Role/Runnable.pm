@@ -110,7 +110,7 @@ has status_message => (
 sub _build_status_message {
     my $self = shift;
 
-    my $mesg = "Child exited " . $self->exit_code;
+    my $mesg = "Job $self - worker process exited " . $self->exit_code;
     if ( my $signal = $self->signal ) {
         $mesg .= " (killed by signal $signal)";
     }
@@ -135,6 +135,7 @@ sub _out_err_callback {
     my $tag = shift;
     my $ndc = Log::Log4perl::NDC->get;
     for ( @_ ) {
+        chomp;
         $self->log->info( "$tag $_" );
         $self->add_output( "[$ndc] $tag $_" );
     }
