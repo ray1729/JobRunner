@@ -28,7 +28,7 @@ has jobs => (
 sub list_jobs {
     my $self = shift;
 
-    map $_->list_jobs, $self->get_jobs;
+    map $_->list_jobs( 0 ), $self->get_jobs;
 }
 
 sub run {

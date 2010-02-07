@@ -67,8 +67,9 @@ sub run {
 
 sub list_jobs {
     my $self = shift;
+    my $depth = shift;
     
-    map $_->list_jobs, $self->get_jobs;
+    [ $self, $depth++ ], map $_->list_jobs($depth), $self->get_jobs;
 }
 
 __PACKAGE__->meta->make_immutable;

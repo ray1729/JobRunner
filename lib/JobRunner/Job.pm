@@ -91,7 +91,8 @@ sub exec_child {
 }
 
 sub list_jobs {
-    return shift;
+    my ( $self, $depth ) = @_;
+    return [ $self, $depth ];
 }
 
 __PACKAGE__->meta->make_immutable;

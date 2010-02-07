@@ -74,7 +74,14 @@ sub act_list {
     my $schedule = get_schedule( $config_file, $schedule_name );   
 
     for ( $schedule->list_jobs ) {
-        print "$_\n";
+	my ( $job, $depth ) = @$_;
+	my $indent = join '', ( q{  } ) x $depth;
+	my $job_str = $job->name;
+	$job_str .= " - " . $job->desc
+	    if $job->desc;
+	$job_str .= " [disabled]"
+	    unless $job->enabled;
+        print "$indent$job_str\n";
     }
 }
 
