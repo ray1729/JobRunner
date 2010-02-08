@@ -24,7 +24,7 @@ has config => (
 sub _build_config {
     my $self = shift;
 
-    Config::Scoped->new( file => $self->path )->parse;
+    Config::Scoped->new( file => $self->path, warnings => { permissions => 'off' } )->parse;
 }
 
 has schedule_groups => (
@@ -37,6 +37,24 @@ has schedule_groups => (
         get_schedule => 'get',
     },
 );
+
+has log4perl => (
+    is         => 'rw',
+    isa        => 'HashRef[Str]',
+    lazy_build => 1,
+);
+
+sub _build_log4perl {
+    my $self = shift;
+
+    my %log4perl;
+
+    while ( my ( $key, $value ) = each %{ $self->config->{log4perl} } ) {
+        $log4perl{ "log4perl.$key" } = $value;
+    }
+
+    return \%log4perl;
+}
 
 sub parse {
     my $self = shift;
@@ -54,17 +72,20 @@ sub build_schedule {
     my $schedule = JobRunner::Schedule->new( name => $schedule_name );
 
     for my $job_name ( @{ $schedule_conf->{jobs} } ) {
-        $schedule->add_job( $self->build_job( $job_name  ) );
+        $schedule->add_job( $self->build_job( $job_name, 1 ) );
     }
 
     return $schedule;
 }
 
 sub build_job {
-    my ( $self, $job_name ) = @_;
+    my ( $self, $job_name, $is_toplevel ) = @_;
 
     my $job_conf = $self->config->{job}->{ $job_name }
         or confess( "no configuration for job $job_name" );
+
+    $job_conf->{workdir} = '/'
+        if $is_toplevel and not $job_conf->{workdir};
 
     my $job;
     
@@ -89,6 +110,10 @@ sub add_jobs {
         my $job = $self->build_job( $job_spec->{job} );
         $job->continue_on_error( 1 )
             if $job_spec->{continue_on_error};
+        $job->workdir( $job_spec->{workdir} )
+            if $job_spec->{workdir};
+        $job->workdir( $job_group->workdir )
+            unless $job->workdir;
         $job_group->add_job( $job );
     }
 }   

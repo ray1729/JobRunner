@@ -8,45 +8,34 @@ use strict;
 use warnings FATAL => 'all';
 
 use Getopt::Long;
-use Log::Log4perl ':levels';
+use Log::Log4perl;
 use Pod::Usage;
 use JobRunner::Config;
 
 {   
     my $action = \&act_run;
-    my $log_level = $WARN;
-    my $log_file  = 'STDERR';
     
     GetOptions(
-        'help'          => sub { pod2usage( -verbose => 1 ) },
-        'man'           => sub { pod2usage( -verbose => 2 ) },
-        'debug'         => sub { $log_level = $DEBUG },
-        'verbose'       => sub { $log_level = $INFO },
-        'logfile=s'     => sub { $log_file = '>>' . $_[1] },
-        'config=s'      => \my $config,
-        'schedule=s'    => \my $schedule,
-        'configtest'    => sub { $action = \&act_configtest },
-        'list'          => sub { $action = \&act_list },
+        'help'           => sub { pod2usage( -verbose => 1 ) },
+        'man'            => sub { pod2usage( -verbose => 2 ) },
+        'config=s'       => \my $config_file,
+        'schedule=s'     => \my $schedule,
+        'dryrun|dry-run' => \my $dryrun,
+        'configtest'     => sub { $action = \&act_configtest },
+        'list'           => sub { $action = \&act_list },
     ) or pod2usage(2);
 
-    Log::Log4perl->easy_init( {
-        level  => $log_level,
-        layout => '%d [%x] %P %p: %m%n',
-        file   => $log_file,
-    } );
-
-    Log::Log4perl::NDC->push( $schedule );
+    my $config = JobRunner::Config->new( path => $config_file )->parse;
+    Log::Log4perl->init( $config->log4perl );
     
-    $action->( $config, $schedule );
+    $action->( $config, $schedule, $dryrun );
 }
 
 sub get_schedule {
-    my ( $config_file, $schedule_name ) = @_;
+    my ( $conf, $schedule_name ) = @_;
     
     pod2usage( "--schedule must be specified" )
         unless defined $schedule_name;
-
-    my $conf = JobRunner::Config->new( path => $config_file )->parse;
 
     my $schedule = $conf->get_schedule( $schedule_name )
         or die "Schedule $schedule_name not configured";
@@ -55,23 +44,29 @@ sub get_schedule {
 }
 
 sub act_run {
-    my ( $config_file, $schedule_name ) = @_;
+    my ( $config, $schedule_name, $dryrun ) = @_;
 
-    my $schedule = get_schedule( $config_file, $schedule_name );
-    $schedule->run();
+    my $schedule = get_schedule( $config, $schedule_name );
+
+    if ( $dryrun ) {
+        $schedule->dryrun;
+    }
+    else {
+        $schedule->run;
+    }
 }
 
 sub act_configtest {
-    my ( $config_file, $schedule ) = @_;
+    my ( $config, $schedule ) = @_;
 
-    JobRunner::Config->new( path => $config_file )->parse
-            and print "Configuration OK\n";
+    # If we got this far, config file was OK
+    print "Configuration OK\n";
 }
 
 sub act_list {
-    my ( $config_file, $schedule_name ) = @_;
+    my ( $config, $schedule_name ) = @_;
 
-    my $schedule = get_schedule( $config_file, $schedule_name );   
+    my $schedule = get_schedule( $config, $schedule_name );   
 
     for ( $schedule->list_jobs ) {
 	my ( $job, $depth ) = @$_;

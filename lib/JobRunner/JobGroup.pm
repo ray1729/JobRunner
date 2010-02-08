@@ -19,14 +19,14 @@ has jobs => (
 
 sub run {
     my $self = shift;
-
+    
     $self->log->info( "Running job group $self" );
 
     for my $job ( $self->get_jobs ) {
         Log::Log4perl::NDC->push( $job->name );
         $job->workdir( $self->workdir || '/' )
             unless $job->workdir;
-        $job->run();
+        $job->run;
         if ( $job->has_errors ) {
             $self->error( $job->get_errors );
             $self->error( "Job $job failed, aborting job group" );
@@ -64,6 +64,17 @@ sub run {
         $self->log->info( $self->status_message );
     }
 }
+
+sub dryrun {
+    my $self = shift;
+
+    $self->add_output( "Dry-run: $self [" . $self->workdir . "]" );
+    for my $job ( $self->get_jobs ) {
+        $job->dryrun;
+        $self->add_output( $job->get_output );
+    }
+}
+
 
 sub list_jobs {
     my $self = shift;

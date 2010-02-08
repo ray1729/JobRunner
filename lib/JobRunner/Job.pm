@@ -78,7 +78,7 @@ sub exec_child {
           or confess "dup STDERR: $!";
         open( STDIN, '</dev/null' )
           or confess "dup STDIN: $!";
-        chdir( $self->workdir || '/' )
+        chdir( $self->workdir )
             or confess "chdir " . $self->workdir . ": $!";
         exec( '/bin/bash', '-c', $self->command )
             or confess "failed to exec bash: $!";
@@ -90,6 +90,13 @@ sub exec_child {
     return ( $pid, $out, $err );
 }
 
+sub dryrun {
+    my $self = shift;
+    
+    $self->add_output( "Dry-run: $self [" . $self->workdir . "]" );
+    $self->add_output( $self->command );
+}
+    
 sub list_jobs {
     my ( $self, $depth ) = @_;
     return [ $self, $depth ];

@@ -73,6 +73,15 @@ sub run {
     }
 }
 
+sub dryrun {
+    my $self = shift;
+
+    for my $job ( $self->get_jobs ) {
+        $job->dryrun;
+        print STDERR "$_\n" for $job->get_output;
+    }
+}
+
 __PACKAGE__->meta->make_immutable;
 
 1;
