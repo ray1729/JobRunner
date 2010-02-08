@@ -92,9 +92,14 @@ sub exec_child {
 
 sub dryrun {
     my $self = shift;
-    
-    $self->add_output( "Dry-run: $self [" . $self->workdir . "]" );
-    $self->add_output( $self->command );
+
+    if ( $self->enabled ) {  
+        $self->add_output( "Dry-run: $self [" . $self->workdir . "]" );
+        $self->add_output( $self->command );
+    }
+    else {
+        $self->add_output( "Dry-run: $self skipped (job disabled)" );        
+    }
 }
     
 sub list_jobs {

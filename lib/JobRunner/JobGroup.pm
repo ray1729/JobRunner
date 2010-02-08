@@ -68,10 +68,15 @@ sub run {
 sub dryrun {
     my $self = shift;
 
-    $self->add_output( "Dry-run: $self [" . $self->workdir . "]" );
-    for my $job ( $self->get_jobs ) {
-        $job->dryrun;
-        $self->add_output( $job->get_output );
+    if ( $self->enabled ) {
+        $self->add_output( "Dry-run: $self [" . $self->workdir . "]" );
+        for my $job ( $self->get_jobs ) {
+            $job->dryrun;
+            $self->add_output( $job->get_output );
+        }
+    }
+    else {
+        $self->add_output( "Dry-run: $self skipped (job group disabled)" );
     }
 }
 
