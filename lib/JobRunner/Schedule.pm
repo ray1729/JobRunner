@@ -33,6 +33,8 @@ sub list_jobs {
 
 sub run {
     my $self = shift;
+
+    Log::Log4perl::NDC->push( $self->name );
     
     $self->log->info( "Running jobs for schedule " . $self->name );
     
@@ -64,13 +66,19 @@ sub run {
         Log::Log4perl::NDC->pop;
     }
 
+    my $exit_code = 0;
+    
     while ( ( my $pid = wait ) > 0 ) {
         my $job = $job_for{ $pid };
         $job->status( $? );
-        Log::Log4perl::NDC->push( $job->name );
-        $self->log->info( $job->status_message );
-        Log::Log4perl::NDC->pop;
+        if ( $job->exit_code != 0 ) {
+            $self->log->error( "Job $job failed" );
+            $exit_code++;
+        }
+        $self->log->info( "Job $job completed successfully" );
     }
+
+    exit $exit_code;
 }
 
 sub dryrun {
