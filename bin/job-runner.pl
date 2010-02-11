@@ -21,12 +21,15 @@ use JobRunner::Config;
         'config=s'       => \my $config_file,
         'schedule=s'     => \my $schedule,
         'dryrun|dry-run' => \my $dryrun,
+        'now'            => \my $now,
         'configtest'     => sub { $action = \&act_configtest },
         'list'           => sub { $action = \&act_list },
     ) or pod2usage(2);
 
     my $config = JobRunner::Config->new( path => $config_file )->parse;
     Log::Log4perl->init( $config->log4perl );
+
+    $schedule = '__NOW__' if $now;
     
     $action->( $config, $schedule, $dryrun );
 }

@@ -34,9 +34,22 @@ has schedule_groups => (
     traits  => [ 'Hash' ],
     handles => {
         set_schedule => 'set',
-        get_schedule => 'get',
     },
 );
+
+sub get_schedule {
+    my ( $self, $schedule_name ) = @_;
+
+    if ( $schedule_name eq '__NOW__' ) {
+        my $schedule  = JobRunner::Schedule->new( name => '__NOW__' );
+        my $job_group = JobRunner::JobGroup->new( name => 'ONEOFF', workdir => '/' );
+        $self->add_jobs( $job_group, [ map { job => $_ }, @ARGV ] );
+        $schedule->add_job( $job_group );
+        return $schedule;
+    }
+
+    $self->schedule_groups->{ $schedule_name };
+}
 
 has log4perl => (
     is         => 'rw',
