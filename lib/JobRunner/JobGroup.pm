@@ -31,6 +31,7 @@ sub run {
             $self->error( $job->get_errors );
             $self->error( "Job $job failed, aborting job group" );
             $self->add_output( $job->get_output );
+            Log::Log4perl::NDC->pop;
             last;
         }
         elsif ( $job->has_warnings ) {
@@ -41,8 +42,6 @@ sub run {
         else {
             $self->log->info( "Job $job completed successfully" );
         }
-    }
-    continue {
         Log::Log4perl::NDC->pop;
     }
 
