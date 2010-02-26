@@ -91,13 +91,53 @@ job-runner.pl - Describe the usage of script briefly
 
 =head1 SYNOPSIS
 
-job-runner.pl [options] args
+  job-runner.pl --config=PATH --configtest
 
-      -opt --long      Option description
+  job-runner.pl --config=PATH [--dry-run] --schedule=NAME
+
+  job-runner.pl --config=PATH --list --schedule=NAME
+
+  job-runner.pl --config=PATH --now JOB [JOB ...]
+
+=head1 OPTIONS
+
+=over 
+
+=item B<--help>
+
+Display a brief usage message.
+
+=item B<--man>
+
+Display the manual page.
+
+=item B<--config>
+
+Specify the path of the configuration file (required).
+
+=item B<--schedule>
+
+Specify the schedule to run.
+
+=item B<--now>
+
+Create a schedule I<now> on the fly from the jobs specified on the
+command line and run immediately.
+
+=item B<--dry-run>
+
+Show the jobs that would be run, and the commands that would be issued, but do not actually run any commands.
+
+=item B<--list>
+
+List the jobs in the specified schedule.
+
+=back
 
 =head1 DESCRIPTION
 
-Stub documentation for job-runner.pl, 
+Configurable management of batch jobs with sophisticated log handling
+and error reporting.
 
 =head1 AUTHOR
 
