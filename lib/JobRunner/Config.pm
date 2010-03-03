@@ -85,20 +85,19 @@ sub build_schedule {
     my $schedule = JobRunner::Schedule->new( name => $schedule_name );
 
     for my $job_name ( @{ $schedule_conf->{jobs} } ) {
-        $schedule->add_job( $self->build_job( $job_name, 1 ) );
+        $schedule->add_job( $self->build_job( $job_name, '/' ) );
     }
 
     return $schedule;
 }
 
 sub build_job {
-    my ( $self, $job_name, $is_toplevel ) = @_;
+    my ( $self, $job_name, $default_workdir ) = @_;
 
     my $job_conf = $self->config->{job}->{ $job_name }
         or confess( "no configuration for job $job_name" );
 
-    $job_conf->{workdir} = '/'
-        if $is_toplevel and not $job_conf->{workdir};
+    $job_conf->{workdir} ||= $default_workdir;
 
     my $job;
     
@@ -120,13 +119,9 @@ sub add_jobs {
     my ( $self, $job_group, $jobs ) = @_;
 
     for my $job_spec ( @{ $jobs } ) {
-        my $job = $self->build_job( $job_spec->{job} );
+        my $job = $self->build_job( $job_spec->{job}, $job_spec->{workdir} || $job_group->workdir );
         $job->continue_on_error( 1 )
             if $job_spec->{continue_on_error};
-        $job->workdir( $job_spec->{workdir} )
-            if $job_spec->{workdir};
-        $job->workdir( $job_group->workdir )
-            unless $job->workdir;
         $job_group->add_job( $job );
     }
 }   

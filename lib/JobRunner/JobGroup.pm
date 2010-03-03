@@ -24,8 +24,6 @@ sub run {
 
     for my $job ( $self->get_jobs ) {
         Log::Log4perl::NDC->push( $job->name );
-        $job->workdir( $self->workdir || '/' )
-            unless $job->workdir;
         $job->run;
         if ( $job->has_errors ) {
             $self->error( $job->get_errors );
