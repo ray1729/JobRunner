@@ -1,11 +1,14 @@
 package JobRunner::Schedule;
 
 use Moose;
+use Moose::Util::TypeConstraints;
+use Fcntl ':flock';
+use File::Class;
+use File::Path;
+use IO::File;
 use namespace::autoclean;
 
-use JobRunner::Role::Runnable;
-use Log::Log4perl;
-
+with 'JobRunner::Role::Runnable';
 with 'MooseX::Log::Log4perl';
 
 has name => (
@@ -25,6 +28,43 @@ has jobs => (
     }
 );
 
+class_type 'JobRunner::File::Class' => { class => 'File::Class' };
+
+coerce 'JobRunner::File::Class'
+    => from 'Str'
+    => via { File::Class->new( $_ ) };
+
+has lockfile => (
+    is     => 'rw',
+    isa    => 'JobRunner::File::Class',
+    coerce => 1,
+);
+
+has exclusive_lock => (
+    is         => 'ro',
+    isa        => 'IO::File',
+    lazy_build => 1,
+);
+
+sub _build_exclusive_lock {
+    my $self = shift;
+
+    my $lockfile = $self->lockfile;    
+
+    $self->log->info( "Taking exclusive lock on $lockfile" );
+
+    my $lockdir = $lockfile->up;
+    -d $lockdir or File::Path::make_path( $lockdir );
+
+    my $lock_fh = IO::File->new( $lockfile, O_RDWR|O_CREAT, 0644 )
+        or confess "create $lockfile: $!";
+
+    flock( $lock_fh, LOCK_EX|LOCK_NB )
+        or confess "flock $lockfile: $!";
+
+    return $lock_fh;
+}
+
 sub list_jobs {
     my $self = shift;
 
@@ -35,6 +75,8 @@ sub run {
     my $self = shift;
 
     Log::Log4perl::NDC->push( $self->name );
+
+    $self->exclusive_lock();
     
     $self->log->info( "Running jobs for schedule " . $self->name );
     

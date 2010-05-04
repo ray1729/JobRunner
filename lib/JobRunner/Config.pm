@@ -84,6 +84,10 @@ sub build_schedule {
 
     my $schedule = JobRunner::Schedule->new( name => $schedule_name );
 
+    if ( defined( my $lockfile = $schedule_conf->{lockfile} ) ) {
+        $schedule->lockfile( $lockfile );        
+    }
+
     for my $job_name ( @{ $schedule_conf->{jobs} } ) {
         $schedule->add_job( $self->build_job( $job_name, '/' ) );
     }
