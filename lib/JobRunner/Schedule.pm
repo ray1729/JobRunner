@@ -11,12 +11,6 @@ use namespace::autoclean;
 with 'JobRunner::Role::Runnable';
 with 'MooseX::Log::Log4perl';
 
-has name => (
-    is       => 'ro',
-    isa      => 'Str',
-    required => 1,
-);
-
 has jobs => (
     is       => 'rw',
     isa      => 'ArrayRef[JobRunner::Role::Runnable]',
@@ -35,9 +29,10 @@ coerce 'JobRunner::File::Class'
     => via { File::Class->new( $_ ) };
 
 has lockfile => (
-    is     => 'rw',
-    isa    => 'JobRunner::File::Class',
-    coerce => 1,
+    is        => 'rw',
+    isa       => 'JobRunner::File::Class',
+    coerce    => 1,
+    predicate => 'has_lockfile'
 );
 
 has exclusive_lock => (
@@ -49,7 +44,10 @@ has exclusive_lock => (
 sub _build_exclusive_lock {
     my $self = shift;
 
-    my $lockfile = $self->lockfile;    
+    confess "no lockfile defined for $self"
+        unless $self->has_lockfile;
+    
+    my $lockfile = $self->lockfile;
 
     $self->log->info( "Taking exclusive lock on $lockfile" );
 
@@ -76,7 +74,7 @@ sub run {
 
     Log::Log4perl::NDC->push( $self->name );
 
-    $self->exclusive_lock();
+    $self->exclusive_lock() if $self->has_lockfile;
     
     $self->log->info( "Running jobs for schedule " . $self->name );
     
