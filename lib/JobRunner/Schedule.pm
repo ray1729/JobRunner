@@ -90,7 +90,7 @@ sub run {
         if ( $pid == 0 ) {
             $job->run;
             if ( $job->has_errors or $job->has_warnings ) {
-	        for ( $job->get_output, $job->get_errors, $job->get_warnings ) {
+                for ( $job->truncated_output, $job->get_errors, $job->get_warnings ) {
 		    chomp;
 	            print STDERR "$_\n";
 		}

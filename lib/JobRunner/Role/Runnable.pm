@@ -1,11 +1,15 @@
 package JobRunner::Role::Runnable;
 
 use MooseX::Role::WithOverloading;
-#use Log::Log4perl::NDC;
+use Readonly;
+
+Readonly my $TRUNCATE_OUTPUT => 1000;
 
 with 'MooseX::Log::Log4perl';
 
 requires qw( run list_jobs );
+
+use List::Util 'sum';
 
 use overload (
     q{""}    => 'as_string',
@@ -32,6 +36,29 @@ has output => (
         get_output => 'elements',
     }
 );
+
+has output_length => (
+    is         => 'ro',
+    isa        => 'Int',
+    lazy_build => 1,
+);
+
+sub _build_output_length {
+    my $self = shift;
+
+    sum ( 0, map length( $_ ), $self->get_output );
+}
+
+sub truncated_output {
+    my $self = shift;
+
+    if ( $self->output_length < $TRUNCATE_OUTPUT ) {
+        return $self->get_output;
+    }
+
+    my $len = 0;
+    grep( { $len += length( $_ ); $len < $TRUNCATE_OUTPUT } $self->get_output ), "[OUTPUT TRUNCATED]\n";
+}
 
 has enabled => (
     is      => 'rw',
